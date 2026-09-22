@@ -1,0 +1,23 @@
+<footer>
+  <div class="container pb-4">
+    <div class="row g-4">
+      <div class="col-md-4">
+        <h5>Xizmat.uz</h5>
+        <p>Ishonchli ustalar va xizmatlar bir joyda.</p>
+      </div>
+      <div class="col-md-4">
+        <h6>Kategoriyalar</h6>
+        <ul class="list-unstyled">
+          {% for cat in nav_categories %}
+          <li>{{ cat.name }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="col-md-4">
+        <h6>Aloqa</h6>
+        <p>+998 90 123 45 67<br>info@xizmat.uz</p>
+      </div>
+    </div>
+    <p class="footer-copy mb-0">&copy; 2026 Xizmat.uz. Barcha huquqlar himoyalangan.</p>
+  </div>
+</footer>

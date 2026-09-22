@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Yopilgan buyurtmalar - Xizmat.uz{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="mb-4">✅ Yopilgan buyurtmalarim</h2>
+
+    {% if completed_orders %}
+    <div class="row g-3">
+        {% for order in completed_orders %}
+        <div class="col-md-6">
+            <div class="card p-3 shadow-sm border-success">
+                <h5>{{ order.category.icon }} {{ order.category.name }}</h5>
+                <p><strong>Mijoz:</strong> {{ order.client.username }}</p>
+                <p><strong>Tavsif:</strong> {{ order.description }}</p>
+                <p><strong>Manzil:</strong> {{ order.address }}</p>
+                <p class="text-secondary small">{{ order.created_at|date:"d.m.Y H:i" }}</p>
+                <span class="badge bg-success">Yakunlandi</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-secondary">Hozircha yopilgan buyurtma yo'q.</p>
+    {% endif %}
+</div>
+{% endblock %}

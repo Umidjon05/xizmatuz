@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Buyurtma berish - Xizmat.uz{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm p-4">
+                <h3 class="mb-4">{{ category.icon }} {{ category.name }} — buyurtma berish</h3>
+
+                <div class="form-check mb-3 p-3 border rounded">
+                    <input class="form-check-input" type="checkbox" id="location-checkbox">
+                    <label class="form-check-label" for="location-checkbox" id="location-label">
+                        📍 Joriy joylashuvimni avtomatik aniqlash
+                    </label>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="latitude" id="id_latitude">
+                    <input type="hidden" name="longitude" id="id_longitude">
+
+                    <div class="mb-3">
+                        <label class="form-label">Muammo tavsifi</label>
+                        <textarea name="description" class="form-control" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Manzil</label>
+                        <input type="text" name="address" id="id_address" class="form-control" readonly required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Telefon raqam</label>
+                        <input type="text" name="phone" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100" id="submit-btn" disabled>Buyurtma berish</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const checkbox = document.getElementById('location-checkbox');
+    const label = document.getElementById('location-label');
+    const addressInput = document.getElementById('id_address');
+    const latInput = document.getElementById('id_latitude');
+    const lonInput = document.getElementById('id_longitude');
+    const submitBtn = document.getElementById('submit-btn');
+
+    const defaultText = "📍 Joriy joylashuvimni avtomatik aniqlash";
+
+    checkbox.addEventListener('change', function () {
+        if (!checkbox.checked) {
+            label.className = 'form-check-label';
+            label.innerHTML = defaultText;
+            addressInput.value = '';
+            submitBtn.disabled = true;
+            return;
+        }
+
+        label.innerHTML = "⏳ Aniqlanmoqda...";
+
+        if (!navigator.geolocation) {
+            label.className = 'form-check-label text-danger';
+            label.innerHTML = "❌ Brauzer qo'llab-quvvatlamaydi";
+            checkbox.checked = false;
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(function (position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            latInput.value = lat;
+            lonInput.value = lon;
+
+            fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=uz`)
+                .then(res => res.json())
+                .then(data => {
+                    const fullAddr = [data.locality, data.city, data.principalSubdivision, data.countryName].filter(Boolean).join(', ');
+                    if (fullAddr) {
+                        addressInput.value = fullAddr;
+                        label.className = 'form-check-label text-success fw-bold';
+                        label.innerHTML = "✅ Manzil aniqlandi";
+                        submitBtn.disabled = false;
+                    } else {
+                        label.className = 'form-check-label text-danger';
+                        label.innerHTML = "❌ Aniqlanmadi, qaytadan urinib ko'ring";
+                        checkbox.checked = false;
+                    }
+                })
+                .catch(() => {
+                    label.className = 'form-check-label text-danger';
+                    label.innerHTML = "❌ Xatolik, qaytadan urinib ko'ring";
+                    checkbox.checked = false;
+                });
+        }, function () {
+            label.className = 'form-check-label text-danger';
+            label.innerHTML = "❌ Ruxsat berilmadi";
+            checkbox.checked = false;
+        });
+    });
+});
+</script>
+{% endblock %}

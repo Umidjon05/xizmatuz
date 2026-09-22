@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Profil - Xizmat.uz{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 760px;">
+  <h1 class="mb-4">Profil</h1>
+
+  <div class="card p-4 mb-4">
+    <h5>Ma'lumotlar va joylashuv</h5>
+    <p class="text-muted">Usta chaqirganingizda shu joylashuv ishlatiladi. Boshqa shaharga borgan bo'lsangiz, yangilang.</p>
+
+    <form method="post" id="profileForm">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="profile">
+      <input type="hidden" name="city" id="id_city" value="{{ user.city|default_if_none:'' }}">
+      <input type="hidden" name="district" id="id_district" value="{{ user.district|default_if_none:'' }}">
+      <input type="hidden" name="street" id="id_street" value="{{ user.street|default_if_none:'' }}">
+      <input type="hidden" name="latitude" id="id_latitude" value="{{ user.latitude|default_if_none:''|stringformat:'s' }}">
+      <input type="hidden" name="longitude" id="id_longitude" value="{{ user.longitude|default_if_none:''|stringformat:'s' }}">
+
+      <div class="mb-3">
+        <label class="form-label" for="id_phone">Telefon raqam</label>
+        <input type="text" class="form-control" name="phone" id="id_phone" value="{{ user.phone|default_if_none:'' }}">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label" for="id_full_address">Manzil</label>
+        <input type="text" class="form-control" name="full_address" id="id_full_address" value="{{ user.full_address|default_if_none:'' }}">
+      </div>
+
+      <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+        <button type="button" class="btn btn-outline-primary" id="locBtn">Hozirgi joylashuvimni aniqlash</button>
+        <span class="text-muted" id="locStatus" role="status"></span>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Saqlash</button>
+    </form>
+  </div>
+
+  <div class="card p-4">
+    <h5 class="mb-3">Parolni o'zgartirish</h5>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="password">
+      {{ password_form|crispy }}
+      <button type="submit" class="btn btn-primary">Parolni o'zgartirish</button>
+    </form>
+  </div>
+</div>
+
+<script>
+const locBtn = document.getElementById('locBtn');
+const locStatus = document.getElementById('locStatus');
+const setVal = (id, v) => { document.getElementById(id).value = v || ''; };
+
+locBtn.addEventListener('click', () => {
+  if (!navigator.geolocation) {
+    locStatus.textContent = "Brauzeringiz joylashuvni aniqlay olmaydi.";
+    return;
+  }
+  locStatus.textContent = "Aniqlanmoqda...";
+
+  navigator.geolocation.getCurrentPosition(async (pos) => {
+    const lat = pos.coords.latitude, lon = pos.coords.longitude;
+    setVal('id_latitude', lat.toFixed(6));
+    setVal('id_longitude', lon.toFixed(6));
+
+    try {
+      const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&accept-language=uz&lat=${lat}&lon=${lon}`;
+      const data = await (await fetch(url)).json();
+      const a = data.address || {};
+      const city = a.city || a.town || a.village || a.state || '';
+      setVal('id_city', city);
+      setVal('id_district', a.county || a.city_district || a.suburb || a.district || '');
+      setVal('id_street', a.road || '');
+      setVal('id_full_address', data.display_name || '');
+      locStatus.textContent = "Aniqlandi: " + city + ". Saqlash tugmasini bosing.";
+    } catch (e) {
+      locStatus.textContent = "Koordinata aniqlandi, manzil nomini olib bo'lmadi. Manzilni qo'lda yozib, saqlang.";
+    }
+  }, () => {
+    locStatus.textContent = "Ruxsat berilmadi. Brauzer sozlamalarida joylashuvga ruxsat bering.";
+  }, { enableHighAccuracy: true, timeout: 15000 });
+});
+</script>
+{% endblock %}

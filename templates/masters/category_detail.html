@@ -1,0 +1,158 @@
+
+{% extends 'base.html' %}
+
+{% block title %}
+    {{ category.name }} - Xizmat.uz
+{% endblock %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <h2 class="mb-4">
+        {{ category.icon }} {{ category.name }}
+    </h2>
+
+    <a
+        href="{% url 'create_order' category.slug %}"
+        class="btn btn-outline-primary mb-4"
+    >
+        ➕ Umumiy buyurtma berish
+        (istalgan usta qabul qiladi)
+    </a>
+
+
+    {% if masters %}
+
+        <h5 class="mb-3">
+            Yoki bevosita ustani tanlang:
+        </h5>
+
+
+        <div class="row g-4">
+
+            {% for master in masters %}
+
+                <div class="col-md-4">
+
+                    <div class="card h-100 shadow-sm">
+
+                        <!-- Usta rasmi -->
+                        {% if master.avatar %}
+
+                            <img
+                                src="{{ master.avatar.url }}"
+                                class="card-img-top"
+                                style="
+                                    height: 200px;
+                                    object-fit: cover;
+                                "
+                            >
+
+                        {% else %}
+
+                            <div
+                                class="bg-light d-flex align-items-center justify-content-center"
+                                style="height: 200px;"
+                            >
+                                <i class="bi bi-person-circle fs-1 text-secondary"></i>
+                            </div>
+
+                        {% endif %}
+
+
+                        <div class="card-body">
+
+                            <!-- Usta nomi -->
+                            <h5 class="card-title">
+                                {{ master.user.username }}
+                            </h5>
+
+
+                            <!-- Tajriba -->
+                            <p class="text-secondary mb-1">
+                                Tajriba:
+                                {{ master.experience_years }}
+                                yil
+                            </p>
+
+
+                            <!-- Narx -->
+                            {% if master.price_range %}
+
+                                <p class="text-secondary mb-1">
+                                    Narx:
+                                    {{ master.price_range }}
+                                </p>
+
+                            {% endif %}
+
+
+                            <!-- Masofa -->
+                            {% if master.distance %}
+
+                                <p class="text-primary fw-bold">
+                                    📍
+                                    {{ master.distance }}
+                                    km uzoqlikda
+                                </p>
+
+                            {% endif %}
+
+
+                            <!-- Tasdiqlangan -->
+                            {% if master.is_verified %}
+
+                                <span class="badge bg-success mb-2">
+                                    ✓ Tasdiqlangan
+                                </span>
+
+                            {% endif %}
+
+
+                            <!-- Tugmalar -->
+                            <div class="d-flex gap-2 mt-2">
+
+                                <!-- Ustani tanlash -->
+                                <a
+                                    href="{% url 'create_order_for_master' category.slug master.id %}"
+                                    class="btn btn-primary flex-grow-1"
+                                >
+                                    Shu ustani tanlash
+                                </a>
+
+
+                                <!-- Telegram -->
+                                <a
+                                    href="https://t.me/XizmatUzAppBot?start=master_{{ master.id }}"
+                                    class="btn btn-success"
+                                    target="_blank"
+                                    title="Telegram orqali bog'lanish"
+                                >
+                                    <i class="bi bi-telegram"></i>
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <p class="text-secondary">
+            Hozircha bu sohada usta topilmadi.
+        </p>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
+

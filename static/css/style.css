@@ -1,0 +1,96 @@
+:root {
+    --blue: #1B4FA0;
+    --blue-dark: #123A7A;
+    --ink: #0F2347;
+    --line: #DCE3EE;
+    --bg: #F5F7FB;
+
+    --bs-primary: var(--blue);
+    --bs-primary-rgb: 27, 79, 160;
+    --bs-link-color: var(--blue);
+    --bs-body-bg: var(--bg);
+    --bs-body-font-family: 'Manrope', system-ui, sans-serif;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+main { flex: 1; }
+
+h1, h2, h3, h4, h5 { color: var(--ink); font-weight: 700; }
+
+/* Navbar */
+.navbar {
+    background: #fff;
+    border-bottom: 1px solid var(--line);
+    z-index: 1030;
+}
+.navbar-brand { color: var(--ink) !important; font-weight: 700; font-size: 1.4rem; }
+.navbar .nav-link { color: var(--ink); font-weight: 600; }
+.navbar .nav-link:hover { color: var(--blue); }
+.dropdown-menu { border: 1px solid var(--line); border-radius: 12px; padding: .4rem; }
+.dropdown-item { border-radius: 8px; }
+
+/* Tugmalar */
+.btn { font-weight: 700; border-radius: 10px; }
+.btn-primary {
+    --bs-btn-bg: var(--blue);
+    --bs-btn-border-color: var(--blue);
+    --bs-btn-hover-bg: var(--blue-dark);
+    --bs-btn-hover-border-color: var(--blue-dark);
+}
+.btn-outline-primary {
+    --bs-btn-color: var(--blue);
+    --bs-btn-border-color: var(--blue);
+    --bs-btn-hover-bg: var(--blue);
+    --bs-btn-hover-border-color: var(--blue);
+}
+
+/* Kartalar */
+.card { border: 1px solid var(--line); border-radius: 16px; box-shadow: none; }
+.cat-icon {
+    width: 52px; height: 52px;
+    display: grid; place-items: center;
+    font-size: 1.6rem;
+    background: #E8F0FB;
+    border-radius: 14px;
+}
+.card ul li a { color: var(--ink); text-decoration: none; display: block; padding: .25rem 0; }
+.card ul li a:hover { color: var(--blue); }
+
+/* Formalar */
+.form-control, .form-select { border: 1.5px solid var(--line); border-radius: 10px; padding: .65rem .9rem; }
+.form-control:focus, .form-select:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 4px rgba(27, 79, 160, .15);
+}
+
+/* Hero */
+.hero {
+    background: var(--blue);
+    color: #fff;
+    padding: clamp(3rem, 9vw, 6rem) 0;
+}
+.hero h1 { color: #fff; font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1.1; }
+.hero .lead { color: rgba(255, 255, 255, .85); max-width: 40rem; margin: 1rem 0 2rem; }
+
+/* Footer */
+footer {
+    background: var(--ink);
+    color: rgba(255, 255, 255, .8);
+    margin-top: 4rem;
+    padding-top: 3rem;
+    border-top: 6px solid var(--blue);
+}
+footer h5, footer h6 { color: #fff; }
+footer a { color: rgba(255, 255, 255, .8); text-decoration: none; }
+footer a:hover { color: #fff; }
+footer .footer-copy {
+    border-top: 1px solid rgba(255, 255, 255, .15);
+    margin-top: 2rem;
+    padding-top: 1.25rem;
+    text-align: center;
+    color: rgba(255, 255, 255, .6);
+}

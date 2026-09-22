@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Ro'yxatdan o'tish - Xizmat.uz{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm p-4">
+                <h3 class="text-center mb-4">Ro'yxatdan o'tish</h3>
+
+                <div class="form-check mb-3 p-3 border rounded" id="location-check-box">
+                    <input class="form-check-input" type="checkbox" id="location-checkbox">
+                    <label class="form-check-label" for="location-checkbox">
+                        📍 Joriy joylashuvimni avtomatik aniqlashga roziman
+                    </label>
+                </div>
+
+                <div id="location-status" class="alert alert-secondary" style="display:none;"></div>
+
+                <form method="post" id="register-form">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <button type="submit" class="btn btn-primary w-100 mt-3" id="submit-btn" disabled>
+                        Ro'yxatdan o'tish
+                    </button>
+                </form>
+                <p class="text-center mt-3">
+                    Hisobingiz bormi? <a href="{% url 'login' %}">Kirish</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const checkbox = document.getElementById('location-checkbox');
+    const statusBox = document.getElementById('location-status');
+    const submitBtn = document.getElementById('submit-btn');
+
+    const cityInput = document.getElementById('id_city');
+    const districtInput = document.getElementById('id_district');
+    const streetInput = document.getElementById('id_street');
+    const fullAddressInput = document.getElementById('id_full_address');
+    const latInput = document.getElementById('id_latitude');
+    const lonInput = document.getElementById('id_longitude');
+
+    const userTypeSelect = document.getElementById('id_user_type');
+       const masterOnlyFields = [
+        document.getElementById('div_id_categories'),
+        document.getElementById('div_id_experience_years'),
+        document.getElementById('div_id_extra_info'),
+    ];
+
+    function toggleCategories() {
+        masterOnlyFields.forEach(function (field) {
+            if (field) {
+                field.style.display = (userTypeSelect.value === 'master') ? 'block' : 'none';
+            }
+        });
+    }
+    if (userTypeSelect) {
+        userTypeSelect.addEventListener('change', toggleCategories);
+        toggleCategories();
+    }
+
+    const extraInfoLabel = document.querySelector('label[for="id_extra_info"]');
+
+    function updateExtraInfoLabel() {
+        if (!extraInfoLabel) return;
+        const extraInfoMap = {
+            "Santexnik": "Qanday santexnika ishlarini bajara olasiz? (kran, trubalar, isitish tizimi...)",
+            "Elektrik": "Qanday elektr ishlarini bajara olasiz? (provodka, rozetka, avtomat...)",
+            "Uy tozalash": "Qanday tozalash turlarini bajarasiz? (umumiy, oynalar, kimyoviy tozalash)",
+            "Mebel yig'ish": "Qanday mebel turlarini yig'a olasiz? (IKEA, oshxona, shkaf...)",
+            "Enaga": "Necha yoshgacha bolalarga qarash tajribangiz bor?",
+            "Hamshira": "Tibbiy ma'lumotingiz bormi? Qaysi yo'nalishda?",
+            "Repetitor": "Qaysi fan(lar)dan va qaysi sinf darajasida dars berasiz?",
+            "Haydovchi": "Haydovchilik guvohnomasi turi (B, C, D...) va tajriba yili",
+            "Yuk tashish": "Qanday transport vositangiz bor? (Gazel, Damas...)",
+            "Ko'chirish xizmati": "Necha kishilik jamoa bilan ishlaysiz, transport bormi?",
+            "Kompyuter ustasi": "Qaysi sohada mutaxassissiz? (hardware, software, tarmoq...)",
+            "Telefon ta'mirlash": "Qaysi brendlar bilan ishlaysiz? (iPhone, Samsung...)",
+            "Sartarosh": "Erkaklar, ayollar yoki bolalar sartaroshimisiz?",
+            "Massajchi": "Qanday massaj turlarini bilasiz? (klassik, sport, terapevtik...)",
+        };
+
+        let found = null;
+        const checkboxes = document.querySelectorAll('#div_id_categories input[type="checkbox"]');
+        checkboxes.forEach(function (cb) {
+            if (cb.checked && !found) {
+                const wrapper = cb.closest('div') || cb.parentElement;
+                const labelText = wrapper ? wrapper.textContent.trim() : '';
+                for (const key in extraInfoMap) {
+                    if (labelText.includes(key)) {
+                        found = extraInfoMap[key];
+                        break;
+                    }
+                }
+            }
+        });
+
+        extraInfoLabel.textContent = found || "Qo'shimcha ma'lumot";
+    }
+
+    const categoryCheckboxes = document.querySelectorAll('#div_id_categories input[type="checkbox"]');
+    const MAX_CATEGORIES = 2;
+
+    categoryCheckboxes.forEach(function (cb) {
+        cb.addEventListener('change', function () {
+            const checkedCount = document.querySelectorAll('#div_id_categories input[type="checkbox"]:checked').length;
+            if (checkedCount > MAX_CATEGORIES) {
+                cb.checked = false;
+                alert("Ko'pi bilan " + MAX_CATEGORIES + " ta soha tanlashingiz mumkin.");
+                return;
+            }
+            updateExtraInfoLabel();
+        });
+    });
+
+    checkbox.addEventListener('change', function () {
+        if (!checkbox.checked) {
+            statusBox.style.display = 'none';
+            submitBtn.disabled = true;
+            return;
+        }
+
+        statusBox.style.display = 'block';
+        statusBox.className = 'alert alert-info';
+        statusBox.innerHTML = "📍 Joylashuvingiz aniqlanmoqda, iltimos brauzer so'rovida ruxsat bering...";
+
+        if (!navigator.geolocation) {
+            statusBox.className = 'alert alert-danger';
+            statusBox.innerHTML = "❌ Brauzeringiz joylashuvni qo'llab-quvvatlamaydi.";
+            checkbox.checked = false;
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(function (position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+
+            latInput.value = lat;
+            lonInput.value = lon;
+
+            fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=uz`)
+                .then(res => res.json())
+                .then(data => {
+                    const city = data.city || data.locality || data.principalSubdivision || '';
+                    const district = data.localityInfo && data.localityInfo.administrative && data.localityInfo.administrative[2] ? data.localityInfo.administrative[2].name : '';
+                    const fullAddr = [data.locality, data.principalSubdivision, data.countryName].filter(Boolean).join(', ');
+
+                    cityInput.value = city;
+                    districtInput.value = district;
+                    streetInput.value = '';
+                    fullAddressInput.value = fullAddr;
+
+                    if (city) {
+                        statusBox.className = 'alert alert-success';
+                        statusBox.innerHTML = `✅ Manzil aniqlandi: <strong>${fullAddr}</strong>`;
+                        submitBtn.disabled = false;
+                    } else {
+                        statusBox.className = 'alert alert-danger';
+                        statusBox.innerHTML = "❌ Manzil aniqlanmadi. Qaytadan urinib ko'ring.";
+                        checkbox.checked = false;
+                    }
+                })
+                .catch(() => {
+                    statusBox.className = 'alert alert-danger';
+                    statusBox.innerHTML = "❌ Xatolik yuz berdi. Qaytadan urinib ko'ring.";
+                    checkbox.checked = false;
+                });
+        }, function (error) {
+            statusBox.className = 'alert alert-danger';
+            if (error.code === error.PERMISSION_DENIED) {
+                statusBox.innerHTML = "❌ Ruxsat berilmadi. Brauzer sozlamalaridan ruxsatni yoqing, so'ng qaytadan belgilang.";
+            } else {
+                statusBox.innerHTML = "❌ Joylashuvni aniqlab bo'lmadi. Qaytadan urinib ko'ring.";
+            }
+            checkbox.checked = false;
+        });
+    });
+});
+</script>
+{% endblock %}
