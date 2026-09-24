@@ -19,5 +19,8 @@ class User(AbstractUser):
     longitude = models.FloatField(null=True, blank=True)
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
 
+    telegram_chat_id = models.CharField(max_length=32, blank=True, null=True)
+    telegram_link_code = models.CharField(max_length=16, blank=True, null=True)
+
     def __str__(self):
         return f"{self.username} ({self.get_user_type_display()})"

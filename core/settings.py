@@ -154,6 +154,7 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
 CSRF_COOKIE_AGE = 31449600  # 1 yil (token muddati uzayadi)
+TELEGRAM_BOT_TOKEN = config('TELEGRAM_BOT_TOKEN', default='')
 CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000', 'http://localhost:8000']
 CSRF_COOKIE_SECURE = False
 SESSION_COOKIE_SECURE = False

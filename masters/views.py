@@ -1,4 +1,3 @@
-
 from django.views.decorators.cache import never_cache
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
@@ -7,6 +6,7 @@ from django.contrib import messages
 from .models import Category, MasterProfile
 from orders.models import Order
 from .utils import haversine_distance
+from core.telegram import send_telegram_message
 
 
 def category_detail(request, slug):
@@ -141,6 +141,22 @@ def create_order(request, slug):
             status='pending',
         )
 
+        notify_masters = MasterProfile.objects.filter(
+            categories=category,
+            status='approved',
+            telegram_id__isnull=False,
+        )
+
+        for nm in notify_masters:
+            send_telegram_message(
+                nm.telegram_id,
+                f"🆕 <b>Yangi buyurtma</b>\n"
+                f"Kategoriya: {category.name}\n"
+                f"Tavsif: {description}\n"
+                f"Manzil: {address}\n"
+                f"Telefon: {phone}"
+            )
+
         messages.success(
             request,
             f"Buyurtma #{order.id} muvaffaqiyatli yuborildi! "
@@ -255,6 +271,16 @@ def create_order_for_master(
             status='accepted',
         )
 
+        if master.telegram_id:
+            send_telegram_message(
+                master.telegram_id,
+                f"🆕 <b>Sizga yangi buyurtma yuborildi</b>\n"
+                f"Kategoriya: {category.name}\n"
+                f"Tavsif: {description}\n"
+                f"Manzil: {address}\n"
+                f"Telefon: {phone}"
+            )
+
         messages.success(
             request,
             f"Buyurtma {master.user.username}ga yuborildi!"
@@ -291,4 +317,3 @@ def connect_telegram(request):
     )
 
     return redirect(telegram_link)
-

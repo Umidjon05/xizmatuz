@@ -6,7 +6,27 @@
 {% block content %}
 
 <div class="container py-5">
+    <!-- TELEGRAM BOT HOLATI -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+            {% if master_profile.telegram_id %}
+                <div>
+                    <strong class="text-success">✅ Telegram bot ulangan</strong>
+                    <div class="text-secondary">Yangi buyurtmalar haqida shu botga xabar keladi.</div>
+                </div>
+            {% else %}
+                <div>
+                    <strong>🔔 Telegram bot ulanmagan</strong>
+                    <div class="text-secondary">Yangi buyurtmalar haqida darhol xabar olish uchun ulaning.</div>
+                </div>
+                <a href="{% url 'connect_telegram' %}" class="btn btn-primary">
+                    Telegram botga ulash
+                </a>
+            {% endif %}
+        </div>
+    </div>
 
+    <!-- YANGI BUYURTMALAR -->
     <!-- YANGI BUYURTMALAR -->
     {% if orders %}
 
