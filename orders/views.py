@@ -100,6 +100,19 @@ def accept_order(request, order_id):
             )
             return redirect('master_dashboard')
 
+        has_active_order = Order.objects.filter(
+            master=master_profile,
+            status__in=['accepted', 'in_progress']
+        ).exists()
+
+        if has_active_order:
+            messages.error(
+                request,
+                "Avval joriy buyurtmangizni yakunlang, "
+                "keyin yangi buyurtma qabul qilishingiz mumkin."
+            )
+            return redirect('master_dashboard')
+
         order.master = master_profile
         order.status = 'accepted'
         order.save(update_fields=['master', 'status'])

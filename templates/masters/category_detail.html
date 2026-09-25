@@ -86,6 +86,18 @@
                                 </p>
 
                             {% endif %}
+                                 <!-- Reyting -->
+                            <p class="mb-1">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= master.avg_rating %}
+                                        <i class="bi bi-star-fill text-warning"></i>
+                                    {% else %}
+                                        <i class="bi bi-star text-secondary"></i>
+                                    {% endif %}
+                                {% endfor %}
+                                <span class="fw-bold ms-1">{{ master.avg_rating|floatformat:1 }}</span>
+                                <span class="text-secondary">({{ master.ratings_count }} baho)</span>
+                            </p>
 
 
                             <!-- Masofa -->

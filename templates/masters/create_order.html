@@ -32,6 +32,25 @@
                         <label class="form-label">Telefon raqam</label>
                         <input type="text" name="phone" class="form-control" required>
                     </div>
+
+                    <div class="mb-3 p-3 border rounded">
+                        <label class="form-label fw-bold">🕐 Qaysi vaqt oralig'ida bo'sh vaqtingiz bor? <span class="text-muted fw-normal">(ixtiyoriy)</span></label>
+                        <p class="text-muted small mb-2">Kiritsangiz, usta shu vaqtga moslab keladi.</p>
+                        <div class="row">
+                            <div class="col-6">
+                                <label class="form-label small">Boshlanish vaqti</label>
+                                <input type="time" name="time_from" id="id_time_from" class="form-control">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small">Tugash vaqti</label>
+                                <input type="time" name="time_to" id="id_time_to" class="form-control">
+                            </div>
+                        </div>
+                        <div id="time-error" class="text-danger small mt-1" style="display:none;">
+                            Tugash vaqti boshlanish vaqtidan keyin bo'lishi kerak
+                        </div>
+                    </div>
+
                     <button type="submit" class="btn btn-primary w-100" id="submit-btn" disabled>Buyurtma berish</button>
                 </form>
             </div>
@@ -47,8 +66,23 @@ document.addEventListener('DOMContentLoaded', function () {
     const latInput = document.getElementById('id_latitude');
     const lonInput = document.getElementById('id_longitude');
     const submitBtn = document.getElementById('submit-btn');
+    const timeFrom = document.getElementById('id_time_from');
+    const timeTo = document.getElementById('id_time_to');
+    const timeError = document.getElementById('time-error');
 
     const defaultText = "📍 Joriy joylashuvimni avtomatik aniqlash";
+
+    function validateTime() {
+        if (timeFrom.value && timeTo.value && timeTo.value <= timeFrom.value) {
+            timeError.style.display = 'block';
+            return false;
+        }
+        timeError.style.display = 'none';
+        return true;
+    }
+
+    timeFrom.addEventListener('change', validateTime);
+    timeTo.addEventListener('change', validateTime);
 
     checkbox.addEventListener('change', function () {
         if (!checkbox.checked) {

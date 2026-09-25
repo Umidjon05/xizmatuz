@@ -8,14 +8,13 @@ from orders.models import Order
 from .utils import haversine_distance
 from core.telegram import send_telegram_message
 
-
 def category_detail(request, slug):
     category = get_object_or_404(Category, slug=slug)
 
     all_masters = MasterProfile.objects.filter(
         categories=category,
         status='approved'
-    )
+    ).order_by('-avg_rating', '-ratings_count')
 
     masters_list = list(all_masters)
 
@@ -96,6 +95,14 @@ def create_order(request, slug):
             'longitude'
         ) or None
 
+        time_from = request.POST.get(
+            'time_from'
+        ) or None
+
+        time_to = request.POST.get(
+            'time_to'
+        ) or None
+
         if not description:
             messages.error(
                 request,
@@ -138,6 +145,8 @@ def create_order(request, slug):
             phone=phone,
             latitude=latitude,
             longitude=longitude,
+            time_from=time_from,
+            time_to=time_to,
             status='pending',
         )
 
@@ -148,14 +157,38 @@ def create_order(request, slug):
         )
 
         for nm in notify_masters:
-            send_telegram_message(
-                nm.telegram_id,
+            text = (
                 f"🆕 <b>Yangi buyurtma</b>\n"
-                f"Kategoriya: {category.name}\n"
-                f"Tavsif: {description}\n"
-                f"Manzil: {address}\n"
-                f"Telefon: {phone}"
+                f"━━━━━━━━━━━━━━━\n"
+                f"🔧 <b>Kategoriya:</b> {category.name}\n"
+                f"📝 <b>Tavsif:</b> {description}\n"
+                f"📍 <b>Manzil:</b> {address}\n"
+                f"📞 <b>Telefon:</b> {phone}"
             )
+
+            if time_from and time_to:
+                text += f"\n🕐 <b>Bo'sh vaqt:</b> {time_from} — {time_to}"
+
+            reply_markup = {
+                "inline_keyboard": [
+                    [
+                        {
+                            "text": "✅ Qabul qilish",
+                            "callback_data": f"accept_order_{order.id}"
+                        }
+                    ]
+                ]
+            }
+
+            if latitude and longitude:
+                reply_markup["inline_keyboard"].append([
+                    {
+                        "text": "📍 Xaritada ko'rish",
+                        "url": f"https://maps.google.com/?q={latitude},{longitude}"
+                    }
+                ])
+
+            send_telegram_message(nm.telegram_id, text, reply_markup)
 
         messages.success(
             request,
@@ -172,7 +205,6 @@ def create_order(request, slug):
             'category': category
         }
     )
-
 
 @login_required
 @never_cache
@@ -223,6 +255,14 @@ def create_order_for_master(
             'longitude'
         ) or None
 
+        time_from = request.POST.get(
+            'time_from'
+        ) or None
+
+        time_to = request.POST.get(
+            'time_to'
+        ) or None
+
         if not description:
             messages.error(
                 request,
@@ -268,18 +308,36 @@ def create_order_for_master(
             phone=phone,
             latitude=latitude,
             longitude=longitude,
-            status='accepted',
+            time_from=time_from,
+            time_to=time_to,
+            status='pending',
         )
 
         if master.telegram_id:
-            send_telegram_message(
-                master.telegram_id,
+            text = (
                 f"🆕 <b>Sizga yangi buyurtma yuborildi</b>\n"
-                f"Kategoriya: {category.name}\n"
-                f"Tavsif: {description}\n"
-                f"Manzil: {address}\n"
-                f"Telefon: {phone}"
+                f"━━━━━━━━━━━━━━━\n"
+                f"🔧 <b>Kategoriya:</b> {category.name}\n"
+                f"📝 <b>Tavsif:</b> {description}\n"
+                f"📍 <b>Manzil:</b> {address}\n"
+                f"📞 <b>Telefon:</b> {phone}"
             )
+
+            if time_from and time_to:
+                text += f"\n🕐 <b>Bo'sh vaqt:</b> {time_from} — {time_to}"
+
+            reply_markup = None
+            if latitude and longitude:
+                reply_markup = {
+                    "inline_keyboard": [[
+                        {
+                            "text": "📍 Xaritada ko'rish",
+                            "url": f"https://maps.google.com/?q={latitude},{longitude}"
+                        }
+                    ]]
+                }
+
+            send_telegram_message(master.telegram_id, text, reply_markup)
 
         messages.success(
             request,

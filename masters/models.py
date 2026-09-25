@@ -1,6 +1,6 @@
-
 from django.db import models
 from django.conf import settings
+from django.db.models import Avg, Count
 
 
 class Category(models.Model):
@@ -95,6 +95,20 @@ class MasterProfile(models.Model):
         null=True
     )
 
+    # --- REYTING UCHUN YANGI MAYDONLAR ---
+    avg_rating = models.DecimalField(
+        max_digits=3,
+        decimal_places=2,
+        default=0,
+    )
+    ratings_count = models.PositiveIntegerField(default=0)
+
     def __str__(self):
         return self.user.username
 
+    def recalc_rating(self):
+        """Ustaning barcha review'lari asosida o'rtacha bahoni qayta hisoblaydi."""
+        agg = self.reviews.aggregate(avg=Avg('rating'), cnt=Count('id'))
+        self.avg_rating = agg['avg'] or 0
+        self.ratings_count = agg['cnt'] or 0
+        self.save(update_fields=['avg_rating', 'ratings_count'])

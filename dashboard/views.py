@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from orders.models import Order
 from masters.models import MasterProfile
 from masters.utils import haversine_distance
+from core.telegram import send_telegram_message
 
 
 @login_required
@@ -13,7 +14,8 @@ def client_dashboard(request):
         return redirect('home')
 
     my_orders = Order.objects.filter(
-        client=request.user
+        client=request.user,
+        hidden_by_client=False,
     ).select_related(
         'category',
         'master',
@@ -59,14 +61,25 @@ def accept_order(request, order_id):
         messages.error(request, "Bu buyurtma sizning xizmat kategoriyangizga mos emas.")
         return redirect('master_dashboard')
 
+    has_active_order = Order.objects.filter(
+        master=master_profile,
+        status__in=['accepted', 'in_progress']
+    ).exists()
+
+    if has_active_order:
+        messages.error(
+            request,
+            "Avval joriy buyurtmangizni yakunlang, "
+            "keyin yangi buyurtma qabul qilishingiz mumkin."
+        )
+        return redirect('master_dashboard')
+
     order.master = master_profile
     order.status = 'accepted'
     order.save(update_fields=['master', 'status'])
 
     messages.success(request, "Buyurtma qabul qilindi! Mijozga xabar yuborildi.")
     return redirect('master_dashboard')
-
-
 @login_required
 def start_order(request, order_id):
     order = get_object_or_404(Order, id=order_id)
@@ -110,6 +123,7 @@ def complete_order(request, order_id):
 
     return JsonResponse({'success': False, 'message': "Noto'g'ri so'rov."})
 
+
 @login_required
 def master_orders_history(request):
     if request.user.user_type != 'master':
@@ -127,3 +141,45 @@ def master_orders_history(request):
         'completed_orders': completed,
         'cancelled_orders': cancelled,
     })
+
+
+@login_required
+def cancel_order(request, order_id):
+    order = get_object_or_404(Order, id=order_id, client=request.user)
+
+    if order.status not in ['pending', 'accepted']:
+        messages.error(
+            request,
+            "Bu buyurtmani endi bekor qilib bo'lmaydi."
+        )
+        return redirect('client_dashboard')
+
+    was_accepted = order.status == 'accepted'
+    master = order.master
+
+    order.status = 'cancelled'
+    order.hidden_by_client = True
+    order.save(update_fields=['status', 'hidden_by_client'])
+    if was_accepted and master and master.telegram_id:
+        send_telegram_message(
+            master.telegram_id,
+            f"❌ <b>Buyurtma bekor qilindi</b>\n"
+            f"Buyurtma #{order.id} mijoz tomonidan bekor qilindi."
+        )
+
+    messages.success(
+        request,
+        f"Buyurtma #{order.id} bekor qilindi."
+    )
+    return redirect('client_dashboard')
+@login_required
+def hide_order(request, order_id):
+    order = get_object_or_404(Order, id=order_id, client=request.user)
+
+    if order.status not in ['completed', 'cancelled']:
+        return JsonResponse({'success': False, 'message': "Faqat yakunlangan yoki bekor qilingan buyurtmani yopish mumkin."})
+
+    order.hidden_by_client = True
+    order.save(update_fields=['hidden_by_client'])
+
+    return JsonResponse({'success': True})

@@ -1,4 +1,3 @@
-
 {% extends 'base.html' %}
 
 {% block title %}Usta kabineti - Xizmat.uz{% endblock %}
@@ -26,7 +25,6 @@
         </div>
     </div>
 
-    <!-- YANGI BUYURTMALAR -->
     <!-- YANGI BUYURTMALAR -->
     {% if orders %}
 
@@ -70,6 +68,13 @@
                             <strong>📞 Telefon:</strong>
                             {{ order.phone }}
                         </p>
+
+                        {% if order.time_from and order.time_to %}
+                        <p>
+                            <strong>🕐 Bo'sh vaqt:</strong>
+                            {{ order.time_from|time:"H:i" }} — {{ order.time_to|time:"H:i" }}
+                        </p>
+                        {% endif %}
 
                         <div class="alert alert-warning">
                             ⏳ Bu buyurtmani hozircha hech bir usta
@@ -177,6 +182,13 @@
                             <strong>📞 Telefon:</strong>
                             {{ order.phone }}
                         </p>
+
+                        {% if order.time_from and order.time_to %}
+                        <p>
+                            <strong>🕐 Bo'sh vaqt:</strong>
+                            {{ order.time_from|time:"H:i" }} — {{ order.time_to|time:"H:i" }}
+                        </p>
+                        {% endif %}
 
 
                         <!-- GOOGLE MAPS -->
@@ -421,4 +433,3 @@ document.querySelectorAll('.complete-btn')
 </script>
 
 {% endblock %}
-

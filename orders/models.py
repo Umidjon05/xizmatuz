@@ -58,10 +58,35 @@ class Order(models.Model):
         blank=True
     )
 
+    time_from = models.TimeField(
+        null=True,
+        blank=True,
+        verbose_name="Bo'sh vaqt (boshlanish)"
+    )
+
+    time_to = models.TimeField(
+        null=True,
+        blank=True,
+        verbose_name="Bo'sh vaqt (tugash)"
+    )
+
+    reminder_sent = models.BooleanField(
+        default=False
+    )
+
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
         default='pending'
+    )
+
+    notified_messages = models.JSONField(
+        default=dict,
+        blank=True
+    )
+
+    hidden_by_client = models.BooleanField(
+        default=False
     )
 
     created_at = models.DateTimeField(
